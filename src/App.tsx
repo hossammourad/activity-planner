@@ -1,8 +1,8 @@
 import { useState } from "react";
 
 const App = () => {
-  const [people, setPeople] = useState<string[]>(["Hossam", "Rania"]);
-  const [cars, setCars] = useState<{ [key: string]: string[]; }>({ "Hussien": [] });
+  const [people, setPeople] = useState<string[]>([]);
+  const [cars, setCars] = useState<{ [key: string]: string[]; }>({});
   const [draggedPersonName, setDraggedPersonName] = useState("");
 
   const renderCars = () => {
@@ -16,8 +16,12 @@ const App = () => {
         >
           <p className="font-semibold" onDrop={(e) => onDrop(e, x)}>{x}</p>
           {cars[x].length > 0 &&
-            <span className="flex gap-2 mt-2" onDrop={(e) => onDrop(e, x)}>
-              {cars[x].map(y => <span key={y} onDrop={(e) => onDrop(e, x)} draggable onDragStart={() => onDragStart(y)} className="bg-slate-100 px-4 py-2 rounded">{y}</span>)}
+            <span className="flex gap-2 mt-2 flex-wrap" onDrop={(e) => onDrop(e, x)}>
+              {cars[x].map(y => (
+                <span key={y} onDrop={(e) => onDrop(e, x)} draggable onDragStart={() => onDragStart(y)} className="bg-slate-100 px-4 py-2 rounded">
+                  {y}
+                </span>
+              ))}
             </span>
           }
         </span>
@@ -40,8 +44,8 @@ const App = () => {
     if (cars[carName].includes(draggedPersonName)) return;
 
     // find if the dragged person already exists in a car
-    // if so remove the person from the existing car
-    // then add it to the new car passed in
+    // if so, remove the person from the existing car
+    // then add to the new car passed in the carName function argument
     const carsClone = { ...cars };
     const existingCar = Object.keys(carsClone).find(key => carsClone[key].includes(draggedPersonName));
     if (existingCar) {
@@ -63,7 +67,7 @@ const App = () => {
   };
 
   const addCarOnClick = () => {
-    const value = window.prompt("Are bringing your car? Enter your name", "");
+    const value = window.prompt("Are you bringing your car? Enter your name", "");
     if (!value?.length) return;
     if (Object.keys(cars).includes(value)) {
       alert("This name already exists");
@@ -75,8 +79,9 @@ const App = () => {
   return (
     <main className="p-4">
       <section>
-        <h1 className="font-semibold text-lg mb-2 px-4 py-3 rounded bg-blue-100">
+        <h1 className="flex items-center font-semibold text-lg mb-2 px-4 py-3 rounded bg-blue-100">
           What, Where, When
+          <span className="text-lg font-normal ml-auto text-gray-400">📝</span>
         </h1>
         <input
           type="text"
@@ -98,22 +103,26 @@ const App = () => {
       <section className="my-7">
         <h1 className="flex items-center font-semibold text-lg mb-2 px-4 py-3 rounded bg-blue-100">
           People
-          <span className="text-xs font-normal ml-auto text-gray-400">🙋‍♂️ Who is coming?</span>
+          <span className="text-sm font-normal ml-auto text-gray-400">🙋‍♂️ Who is coming?</span>
         </h1>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           {renderPeople()}
-          <button className="border px-4 py-2 text-blue-500 font-semibold cursor-pointer" onClick={addPeopleOnClick}>Add +</button>
+          <button className="border px-4 py-2 text-blue-500 font-semibold cursor-pointer" onClick={addPeopleOnClick}>+ Add</button>
         </div>
       </section>
 
       <section>
         <h1 className="flex items-center font-semibold text-lg mb-2 px-4 py-3 rounded bg-blue-100">
           Carpooling
-          <span className="text-xs font-normal ml-auto text-gray-400">🚘 Who is driving?</span>
+          <span className="text-lg font-normal ml-auto text-gray-400">🚘</span>
         </h1>
+        <ul className="my-4 px-4 text-gray-500 text-sm">
+          <li>1. Add yourself here if you're bringing your car and want to take people with you.</li>
+          <li>2. Drag from the People section above to any car block listed below to arrange the carpooling situation.</li>
+        </ul>
         <div className="flex flex-col gap-2">
           {renderCars()}
-          <span className="border px-4 py-2 text-blue-500 font-semibold cursor-pointer" onClick={addCarOnClick}>Add +</span>
+          <span className="border px-4 py-2 text-blue-500 font-semibold cursor-pointer self-start" onClick={addCarOnClick}>+ Add</span>
         </div>
       </section>
     </main>
