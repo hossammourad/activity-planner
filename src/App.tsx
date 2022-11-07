@@ -1,6 +1,10 @@
 import { useState } from "react";
 
 const App = () => {
+  const [activityName, setActivityName] = useState("");
+  const [gatheringLocation, setGatheringLocation] = useState("");
+  const [gatheringTime, setGatheringTime] = useState("");
+
   const [people, setPeople] = useState<string[]>([]);
   const [cars, setCars] = useState<{ [key: string]: string[]; }>({});
   const [draggedPersonName, setDraggedPersonName] = useState("");
@@ -86,16 +90,22 @@ const App = () => {
         <input
           type="text"
           placeholder="Activity name..."
+          value={activityName}
+          onChange={e => setActivityName(e.target.value)}
           className="border border-gray-100 px-3 py-2 mb-2 w-full rounded-md placeholder:text-sm"
         />
         <input
           type="text"
           placeholder="Gathering location..."
+          value={gatheringLocation}
+          onChange={e => setGatheringLocation(e.target.value)}
           className="border border-gray-100 px-3 py-2 mb-2 w-full rounded-md placeholder:text-sm"
         />
         <input
           type="text"
           placeholder="Gathering time..."
+          value={gatheringTime}
+          onChange={e => setGatheringTime(e.target.value)}
           className="border border-gray-100 px-3 py-2 w-full rounded-md placeholder:text-sm"
         />
       </section>
