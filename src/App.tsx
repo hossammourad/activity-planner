@@ -2,7 +2,7 @@ import { useState } from "react";
 
 const App = () => {
   const [people, setPeople] = useState<string[]>(["Hossam", "Rania"]);
-  const [cars, setCars] = useState<{ [key: string]: string[]; }>({ "Hussien": [], "Hany": [] });``
+  const [cars, setCars] = useState<{ [key: string]: string[]; }>({ "Hussien": [], "Hany": [] }); ``;
   const [draggedValue, setDraggedValue] = useState("");
 
   const renderCars = () => {
@@ -65,11 +65,26 @@ const App = () => {
 
   return (
     <main className="p-4">
-      <input
-        type="text"
-        placeholder="Activity name..."
-        className="border border-gray-100 px-3 py-2 w-full rounded-md placeholder:text-sm"
-      />
+      <section>
+        <h1 className="font-semibold text-lg mb-2">
+          What, Where, When
+        </h1>
+        <input
+          type="text"
+          placeholder="Activity name..."
+          className="border border-gray-100 px-3 py-2 mb-2 w-full rounded-md placeholder:text-sm"
+        />
+        <input
+          type="text"
+          placeholder="Gathering location..."
+          className="border border-gray-100 px-3 py-2 mb-2 w-full rounded-md placeholder:text-sm"
+        />
+        <input
+          type="text"
+          placeholder="Gathering time..."
+          className="border border-gray-100 px-3 py-2 mb-2 w-full rounded-md placeholder:text-sm"
+        />
+      </section>
 
       <section className="my-4">
         <h1 className="font-semibold text-lg mb-2">
