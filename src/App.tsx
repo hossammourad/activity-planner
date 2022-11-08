@@ -118,17 +118,13 @@ const App = () => {
     setIsSaving(false);
   };
 
-  if (isLoading) return null;
-  const isSaveButtonDisabled = (
-    !activityName &&
-    !gatheringLocation &&
-    !gatheringTime &&
-    !people.length &&
-    !Object.keys(cars).length
-  ) || isSaving;
+  if (isLoading) return <h1 className="m-4 text-center">Loading...</h1>;
+  const isSaveButtonDisabled =
+    (!activityName && !gatheringLocation && !gatheringTime && !people.length && !Object.keys(cars).length)
+    || isSaving;
   return (
     <main className="p-4">
-      <section className="mt-2 mb-4 flex justify-end gap-2">
+      <section className="mt-2 mb-4 flex justify-between gap-2">
         <button
           disabled={isSaveButtonDisabled}
           onClick={saveOnClick}
