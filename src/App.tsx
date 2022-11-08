@@ -3,6 +3,7 @@ import { v4 as generateUuid } from 'uuid';
 
 import { createActivity, fetchActivityByUuid, modifyActivity } from "./supabase";
 import { addQueryParamToURL, uuidInQueryParam } from "./utils";
+import { Share } from "./Share";
 
 const App = () => {
   // activity information
@@ -16,6 +17,7 @@ const App = () => {
   const [draggedPersonName, setDraggedPersonName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isShareDialogVisible, setIsShareDialogVisible] = useState(false);
 
 
   useEffect(() => {
@@ -136,10 +138,13 @@ const App = () => {
         </button>
         <button
           className="bg-blue-600 text-white px-4 py-2 rounded"
+          onClick={() => setIsShareDialogVisible(!isShareDialogVisible)}
         >
           Share
         </button>
       </section>
+
+      {isShareDialogVisible && <Share close={() => setIsShareDialogVisible(false)} />}
 
       <section>
         <h1 className="flex items-center font-semibold text-lg mb-2 px-4 py-3 rounded bg-blue-100">
