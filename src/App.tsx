@@ -1,4 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { v4 as generateUuid } from 'uuid';
+
+import { createActivity, fetchActivityByUuid, modifyActivity } from "./supabase";
+import { addQueryParamToURL, uuidInQueryParam } from "./utils";
 
 const App = () => {
   const [activityName, setActivityName] = useState("");
@@ -8,6 +12,23 @@ const App = () => {
   const [people, setPeople] = useState<string[]>([]);
   const [cars, setCars] = useState<{ [key: string]: string[]; }>({});
   const [draggedPersonName, setDraggedPersonName] = useState("");
+
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const run = async () => {
+      if (!uuidInQueryParam) return;
+      setIsLoading(true);
+      const { name, gathering_location, gathering_time, people, cars } = await fetchActivityByUuid(uuidInQueryParam);
+      setActivityName(name);
+      setGatheringLocation(gathering_location);
+      setGatheringTime(gathering_time);
+      setPeople(JSON.parse(people));
+      setCars(cars);
+      setIsLoading(false);
+    };
+    run();
+  }, []);
 
   const renderCars = () => {
     return Object.keys(cars).map(x => {
@@ -80,8 +101,33 @@ const App = () => {
     setCars({ ...cars, [value]: [] });
   };
 
+  const saveOnClick = async () => {
+    if (uuidInQueryParam) {
+      await modifyActivity(uuidInQueryParam, activityName, gatheringLocation, gatheringTime, people, cars);
+    } else {
+      const uuid = generateUuid();
+      await createActivity(uuid, activityName, gatheringLocation, gatheringTime, people, cars);
+      addQueryParamToURL("uuid", uuid);
+    }
+  };
+
+  if (isLoading) return null;
   return (
     <main className="p-4">
+      <section className="mt-2 mb-4 flex justify-end gap-2">
+        <button
+          onClick={saveOnClick}
+          className="bg-green-500 text-white px-6 py-2 rounded disabled:bg-gray-300"
+        >
+          {uuidInQueryParam ? "Save Edits" : "Create"}
+        </button>
+        <button
+          className="bg-blue-600 text-white px-6 py-2 rounded"
+        >
+          Share
+        </button>
+      </section>
+
       <section>
         <h1 className="flex items-center font-semibold text-lg mb-2 px-4 py-3 rounded bg-blue-100">
           What, Where, When
@@ -113,7 +159,7 @@ const App = () => {
       <section className="my-7">
         <h1 className="flex items-center font-semibold text-lg mb-2 px-4 py-3 rounded bg-blue-100">
           People
-          <span className="text-sm font-normal ml-auto text-gray-400">🙋‍♂️ Who is coming?</span>
+          <span className="text-sm font-normal ml-auto text-gray-400">Who is coming? 🙋‍♂️</span>
         </h1>
         <div className="flex gap-2 flex-wrap">
           {renderPeople()}
@@ -132,7 +178,7 @@ const App = () => {
         </ul>
         <div className="flex flex-col gap-2">
           {renderCars()}
-          <span className="border px-4 py-2 text-blue-500 font-semibold cursor-pointer self-start" onClick={addCarOnClick}>+ Add</span>
+          <button className="border px-4 py-2 text-blue-500 font-semibold cursor-pointer self-start" onClick={addCarOnClick}>+ Add</button>
         </div>
       </section>
     </main>
