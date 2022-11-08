@@ -5,15 +5,18 @@ import { createActivity, fetchActivityByUuid, modifyActivity } from "./supabase"
 import { addQueryParamToURL, uuidInQueryParam } from "./utils";
 
 const App = () => {
+  // activity information
   const [activityName, setActivityName] = useState("");
   const [gatheringLocation, setGatheringLocation] = useState("");
   const [gatheringTime, setGatheringTime] = useState("");
-
   const [people, setPeople] = useState<string[]>([]);
   const [cars, setCars] = useState<{ [key: string]: string[]; }>({});
-  const [draggedPersonName, setDraggedPersonName] = useState("");
 
+  // states
+  const [draggedPersonName, setDraggedPersonName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
 
   useEffect(() => {
     const run = async () => {
@@ -102,6 +105,7 @@ const App = () => {
   };
 
   const saveOnClick = async () => {
+    setIsSaving(true);
     if (uuidInQueryParam) {
       await modifyActivity(uuidInQueryParam, activityName, gatheringLocation, gatheringTime, people, cars);
     } else {
@@ -109,20 +113,29 @@ const App = () => {
       await createActivity(uuid, activityName, gatheringLocation, gatheringTime, people, cars);
       addQueryParamToURL("uuid", uuid);
     }
+    setIsSaving(false);
   };
 
   if (isLoading) return null;
+  const isSaveButtonDisabled = (
+    !activityName &&
+    !gatheringLocation &&
+    !gatheringTime &&
+    !people.length &&
+    !Object.keys(cars).length
+  ) || isSaving;
   return (
     <main className="p-4">
       <section className="mt-2 mb-4 flex justify-end gap-2">
         <button
+          disabled={isSaveButtonDisabled}
           onClick={saveOnClick}
-          className="bg-green-500 text-white px-6 py-2 rounded disabled:bg-gray-300"
+          className="bg-green-500 text-white px-4 py-2 rounded disabled:bg-gray-300"
         >
-          {uuidInQueryParam ? "Save Edits" : "Create"}
+          {uuidInQueryParam ? "Save Changes" : "Create"}
         </button>
         <button
-          className="bg-blue-600 text-white px-6 py-2 rounded"
+          className="bg-blue-600 text-white px-4 py-2 rounded"
         >
           Share
         </button>
