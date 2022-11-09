@@ -35,12 +35,44 @@ const App = () => {
     run();
   }, []);
 
+  const renderPeople = () => {
+    return people.map(x => {
+      return (
+        <span key={x} className="border px-4 py-2 rounded" draggable onDragStart={() => onDragStart(x)}>
+          {x}
+          <span
+            className="ml-3 pl-3 border-l border-solid border-gray-300 cursor-pointer"
+            onClick={async () => await deletePerson(x)}>
+            🗑
+          </span>
+        </span>
+      );
+    });
+  };
+
+  const deletePerson = async (name: string) => {
+    const newPeople = people.filter(x => x !== name);
+    setPeople(newPeople);
+
+    const carName = Object.keys(cars).find(x => cars[x].includes(name));
+    let newCars = { ...cars };
+    if (carName) {
+      newCars = { ...cars, [carName]: [...cars[carName].filter(x => x !== name)] };
+      setCars(newCars);
+    }
+
+    if (!uuidInQueryParam) return;
+    setIsSaving(true);
+    await modifyActivity(uuidInQueryParam, activityName, gatheringLocation, gatheringTime, newPeople, newCars);
+    setIsSaving(false);
+  };
+
   const renderCars = () => {
     return Object.keys(cars).map(x => {
       return (
         <span
           key={x}
-          className="border p-4 rounded"
+          className="border p-4 rounded relative"
           onDragOver={e => e.preventDefault()}
           onDrop={(e) => onDrop(e, x)}
         >
@@ -50,19 +82,31 @@ const App = () => {
               {cars[x].map(y => (
                 <span key={y} onDrop={(e) => onDrop(e, x)} draggable onDragStart={() => onDragStart(y)} className="bg-slate-100 px-4 py-2 rounded">
                   {y}
+                  <span
+                    className="ml-3 pl-3 border-l border-solid border-gray-300 cursor-pointer"
+                    onClick={async () => await deletePerson(y)}>
+                    🗑
+                  </span>
                 </span>
               ))}
             </span>
           }
-        </span>
+          <span className="ml-3 pl-3 absolute top-3 right-3 cursor-pointer" onClick={() => deleteCar(x)}>
+            🗑
+          </span>
+        </span >
       );
     });
   };
 
-  const renderPeople = () => {
-    return people.map(x => {
-      return <span key={x} className="border px-4 py-2 rounded" draggable onDragStart={() => onDragStart(x)}>{x}</span>;
-    });
+  const deleteCar = async (carName: string) => {
+    const newCars = { ...cars };
+    delete newCars[carName];
+    setCars(newCars);
+    if (!uuidInQueryParam) return;
+    setIsSaving(true);
+    await modifyActivity(uuidInQueryParam, activityName, gatheringLocation, gatheringTime, people, newCars);
+    setIsSaving(false);
   };
 
   const onDragStart = (name: string) => {
