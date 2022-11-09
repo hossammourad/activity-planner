@@ -31,6 +31,7 @@ export const modifyActivity = async (
   people: string[],
   cars: { [key: string]: string[]; }
 ) => {
+  // TODO: modify calls of this func to only pass changed values not all needed values
   await supabase
     .from('activities')
     .update({

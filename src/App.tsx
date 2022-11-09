@@ -61,6 +61,7 @@ const App = () => {
       setCars(newCars);
     }
 
+    // save to DB
     if (!uuidInQueryParam) return;
     setIsSaving(true);
     await modifyActivity(uuidInQueryParam, activityName, gatheringLocation, gatheringTime, newPeople, newCars);
@@ -103,6 +104,8 @@ const App = () => {
     const newCars = { ...cars };
     delete newCars[carName];
     setCars(newCars);
+
+    // save to DB
     if (!uuidInQueryParam) return;
     setIsSaving(true);
     await modifyActivity(uuidInQueryParam, activityName, gatheringLocation, gatheringTime, people, newCars);
@@ -113,41 +116,65 @@ const App = () => {
     setDraggedPersonName(name);
   };
 
-  const onDrop = (e: React.DragEvent, carName: string) => {
+  const onDrop = async (e: React.DragEvent, carName: string) => {
     e.stopPropagation();
+
+    // do nothing if the person is dragged into the same car
     if (cars[carName].includes(draggedPersonName)) return;
 
     // find if the dragged person already exists in a car
     // if so, remove the person from the existing car
-    // then add to the new car passed in the carName function argument
     const carsClone = { ...cars };
     const existingCar = Object.keys(carsClone).find(key => carsClone[key].includes(draggedPersonName));
     if (existingCar) {
       carsClone[existingCar] = carsClone[existingCar].filter(x => x !== draggedPersonName);
     }
-    setCars({ ...carsClone, [carName]: [...carsClone[carName], draggedPersonName] });
+
+    // add the dragged person to the desired car
+    const newCars = { ...carsClone, [carName]: [...carsClone[carName], draggedPersonName] };
+    setCars(newCars);
+
+    // save to DB
+    if (!uuidInQueryParam) return;
+    setIsSaving(true);
+    await modifyActivity(uuidInQueryParam, activityName, gatheringLocation, gatheringTime, people, newCars);
+    setIsSaving(false);
 
     setDraggedPersonName("");
   };
 
-  const addPeopleOnClick = () => {
+  const addPeopleOnClick = async () => {
     const value = window.prompt("Enter your name", "");
     if (!value?.length) return;
     if (people.includes(value)) {
       alert("This name already exists");
       return;
     }
-    setPeople([...people, value]);
+    const newPeople = [...people, value];
+    setPeople(newPeople);
+
+    // save to DB
+    if (!uuidInQueryParam) return;
+    setIsSaving(true);
+    await modifyActivity(uuidInQueryParam, activityName, gatheringLocation, gatheringTime, newPeople, cars);
+    setIsSaving(false);
   };
 
-  const addCarOnClick = () => {
+  const addCarOnClick = async () => {
     const value = window.prompt("Are you bringing your car? Enter your name", "");
     if (!value?.length) return;
     if (Object.keys(cars).includes(value)) {
       alert("This name already exists");
       return;
     }
-    setCars({ ...cars, [value]: [] });
+    const newCars = { ...cars, [value]: [] };
+    setCars(newCars);
+
+    // save to DB
+    if (!uuidInQueryParam) return;
+    setIsSaving(true);
+    await modifyActivity(uuidInQueryParam, activityName, gatheringLocation, gatheringTime, people, newCars);
+    setIsSaving(false);
   };
 
   const saveOnClick = async () => {
@@ -168,7 +195,7 @@ const App = () => {
     || isSaving;
   return (
     <main className="p-4">
-      <section className="mt-2 mb-4 flex justify-between gap-2">
+      <section className="mb-4 flex justify-between gap-2">
         <button
           disabled={isSaveButtonDisabled}
           onClick={saveOnClick}
