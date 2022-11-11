@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { v4 as generateUuid } from 'uuid';
 
 import { createActivity, fetchActivityByUuid, modifyActivity } from "./supabase";
-import { addQueryParamToURL, uuidInQueryParam } from "./utils";
+import { addQueryParamToURL, uuidInQueryParam, getFavorites, updateFavoritesInLocalStorage } from "./utils";
 import { Share } from "./Share";
 
 const App = () => {
@@ -10,6 +10,7 @@ const App = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isShareDialogVisible, setIsShareDialogVisible] = useState(false);
+  const [favorites, setFavorites] = useState(getFavorites());
 
   // activity information
   const [activityName, setActivityName] = useState("");
@@ -33,6 +34,12 @@ const App = () => {
     };
     run();
   }, [uuidInQueryParam]);
+
+  // update favorites in localStorage
+  useEffect(() => {
+    console.log(favorites);
+    updateFavoritesInLocalStorage(favorites);
+  }, [favorites]);
 
   const renderPeople = () => {
     return people.map(x => {
@@ -217,9 +224,20 @@ const App = () => {
   };
 
   const renderFavorite = () => {
-    if (!uuidInQueryParam) return;
+    const uuid = uuidInQueryParam;
+    if (!uuid) return;
+    const color = favorites.includes(uuid) ? "red" : "gray";
     return (
-      <button className="ml-auto bg-blue-100 text-gray-500 px-4 py-2 rounded">
+      <button
+        className={`ml-auto bg-blue-100 text-${color}-500 px-4 py-2 rounded`}
+        onClick={() => {
+          if (favorites.includes(uuid)) {
+            setFavorites(favorites.filter(x => x !== uuid));
+          } else {
+            setFavorites([...favorites, uuid]);
+          }
+        }}
+      >
         ♥
       </button>
     );

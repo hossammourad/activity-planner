@@ -6,3 +6,11 @@ export const addQueryParamToURL = (key: string, value: string) => {
 };
 
 export const uuidInQueryParam = new URLSearchParams(window.location.search).get("uuid");
+
+export const getFavorites = (): string[] => {
+  return JSON.parse(localStorage.getItem("favorites") || "[]");
+};
+
+export const updateFavoritesInLocalStorage = (favorites: string[]) => {
+  localStorage.setItem("favorites", JSON.stringify(favorites));
+};
