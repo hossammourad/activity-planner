@@ -23,22 +23,22 @@ export const createActivity = async (
     });
 };
 
-export const modifyActivity = async (
-  uuid: string,
-  name: string,
-  gathering_location: string,
-  gathering_time: string,
-  people: string[],
-  cars: { [key: string]: string[]; }
-) => {
-  // TODO: modify calls of this func to only pass changed values not all needed values
+interface T {
+  uuid: string;
+  activityName?: string;
+  gatheringLocation?: string;
+  gatheringTime?: string;
+  people?: string[];
+  cars?: { [key: string]: string[]; };
+}
+export const modifyActivity = async ({ uuid, activityName, gatheringLocation, gatheringTime, people, cars }: T) => {
   await supabase
     .from('activities')
     .update({
       created_at: new Date().toISOString(),
-      name,
-      gathering_location,
-      gathering_time,
+      name: activityName,
+      gathering_location: gatheringLocation,
+      gathering_time: gatheringTime,
       people: JSON.stringify(people),
       cars: cars
     })

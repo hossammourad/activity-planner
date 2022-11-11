@@ -6,6 +6,11 @@ import { addQueryParamToURL, uuidInQueryParam } from "./utils";
 import { Share } from "./Share";
 
 const App = () => {
+  const [draggedPersonName, setDraggedPersonName] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isShareDialogVisible, setIsShareDialogVisible] = useState(false);
+
   // activity information
   const [activityName, setActivityName] = useState("");
   const [gatheringLocation, setGatheringLocation] = useState("");
@@ -13,13 +18,7 @@ const App = () => {
   const [people, setPeople] = useState<string[]>([]);
   const [cars, setCars] = useState<{ [key: string]: string[]; }>({});
 
-  // states
-  const [draggedPersonName, setDraggedPersonName] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [isShareDialogVisible, setIsShareDialogVisible] = useState(false);
-
-
+  // get activity from db if uuid present in url
   useEffect(() => {
     const run = async () => {
       if (!uuidInQueryParam) return;
@@ -33,7 +32,7 @@ const App = () => {
       setIsLoading(false);
     };
     run();
-  }, []);
+  }, [uuidInQueryParam]);
 
   const renderPeople = () => {
     return people.map(x => {
@@ -48,24 +47,6 @@ const App = () => {
         </span>
       );
     });
-  };
-
-  const deletePerson = async (name: string) => {
-    const newPeople = people.filter(x => x !== name);
-    setPeople(newPeople);
-
-    const carName = Object.keys(cars).find(x => cars[x].includes(name));
-    let newCars = { ...cars };
-    if (carName) {
-      newCars = { ...cars, [carName]: [...cars[carName].filter(x => x !== name)] };
-      setCars(newCars);
-    }
-
-    // save to DB
-    if (!uuidInQueryParam) return;
-    setIsSaving(true);
-    await modifyActivity(uuidInQueryParam, activityName, gatheringLocation, gatheringTime, newPeople, newCars);
-    setIsSaving(false);
   };
 
   const renderCars = () => {
@@ -100,18 +81,6 @@ const App = () => {
     });
   };
 
-  const deleteCar = async (carName: string) => {
-    const newCars = { ...cars };
-    delete newCars[carName];
-    setCars(newCars);
-
-    // save to DB
-    if (!uuidInQueryParam) return;
-    setIsSaving(true);
-    await modifyActivity(uuidInQueryParam, activityName, gatheringLocation, gatheringTime, people, newCars);
-    setIsSaving(false);
-  };
-
   const onDragStart = (name: string) => {
     setDraggedPersonName(name);
   };
@@ -134,13 +103,43 @@ const App = () => {
     const newCars = { ...carsClone, [carName]: [...carsClone[carName], draggedPersonName] };
     setCars(newCars);
 
-    // save to DB
+    // // modify in DB if existing activity
     if (!uuidInQueryParam) return;
     setIsSaving(true);
-    await modifyActivity(uuidInQueryParam, activityName, gatheringLocation, gatheringTime, people, newCars);
+    await modifyActivity({ uuid: uuidInQueryParam, cars: newCars });
     setIsSaving(false);
 
     setDraggedPersonName("");
+  };
+
+  const deletePerson = async (name: string) => {
+    const newPeople = people.filter(x => x !== name);
+    setPeople(newPeople);
+
+    const carName = Object.keys(cars).find(x => cars[x].includes(name));
+    let newCars = { ...cars };
+    if (carName) {
+      newCars = { ...cars, [carName]: [...cars[carName].filter(x => x !== name)] };
+      setCars(newCars);
+    }
+
+    // modify in DB if existing activity
+    if (!uuidInQueryParam) return;
+    setIsSaving(true);
+    await modifyActivity({ uuid: uuidInQueryParam, people: newPeople, cars: newCars });
+    setIsSaving(false);
+  };
+
+  const deleteCar = async (carName: string) => {
+    const newCars = { ...cars };
+    delete newCars[carName];
+    setCars(newCars);
+
+    // modify in DB if existing activity
+    if (!uuidInQueryParam) return;
+    setIsSaving(true);
+    await modifyActivity({ uuid: uuidInQueryParam, cars: newCars });
+    setIsSaving(false);
   };
 
   const addPeopleOnClick = async () => {
@@ -153,10 +152,10 @@ const App = () => {
     const newPeople = [...people, value];
     setPeople(newPeople);
 
-    // save to DB
+    // modify in DB if existing activity
     if (!uuidInQueryParam) return;
     setIsSaving(true);
-    await modifyActivity(uuidInQueryParam, activityName, gatheringLocation, gatheringTime, newPeople, cars);
+    await modifyActivity({ uuid: uuidInQueryParam, people: newPeople });
     setIsSaving(false);
   };
 
@@ -170,41 +169,48 @@ const App = () => {
     const newCars = { ...cars, [value]: [] };
     setCars(newCars);
 
-    // save to DB
+    // modify in DB if existing activity
     if (!uuidInQueryParam) return;
     setIsSaving(true);
-    await modifyActivity(uuidInQueryParam, activityName, gatheringLocation, gatheringTime, people, newCars);
+    await modifyActivity({ uuid: uuidInQueryParam, cars: newCars });
     setIsSaving(false);
   };
 
-  const saveOnClick = async () => {
+  const createOnClick = async () => {
     setIsSaving(true);
-    if (uuidInQueryParam) {
-      await modifyActivity(uuidInQueryParam, activityName, gatheringLocation, gatheringTime, people, cars);
-    } else {
-      const uuid = generateUuid();
-      await createActivity(uuid, activityName, gatheringLocation, gatheringTime, people, cars);
-      addQueryParamToURL("uuid", uuid);
-    }
+    const uuid = generateUuid();
+    await createActivity(uuid, activityName, gatheringLocation, gatheringTime, people, cars);
+    addQueryParamToURL("uuid", uuid);
+    setIsSaving(false);
+  };
+
+  const modifyActivityBasicInfo = async (key: string, value: string) => {
+    // modify in DB if existing activity
+    if (!uuidInQueryParam) return;
+    setIsSaving(true);
+    await modifyActivity({ uuid: uuidInQueryParam, [key]: value });
     setIsSaving(false);
   };
 
   if (isLoading) return <h1 className="m-4 text-center">Loading...</h1>;
-  const isSaveButtonDisabled =
-    (!activityName && !gatheringLocation && !gatheringTime && !people.length && !Object.keys(cars).length)
-    || isSaving;
+
+  const isCreateDisabled = (!activityName && !gatheringLocation && !gatheringTime && !people.length && !Object.keys(cars).length);
+
   return (
     <main className="p-4">
-      <section className="mb-4 flex justify-between gap-2">
+      <section className="mb-4 flex justify-between items-center gap-2">
+        {!uuidInQueryParam &&
+          <button
+            disabled={isCreateDisabled}
+            onClick={createOnClick}
+            className="bg-green-500 text-white px-4 py-2 rounded disabled:bg-gray-300"
+          >
+            Create
+          </button>
+        }
+        {uuidInQueryParam && isSaving && <span className="text-sm text-green-500">Saving...</span>}
         <button
-          disabled={isSaveButtonDisabled}
-          onClick={saveOnClick}
-          className="bg-green-500 text-white px-4 py-2 rounded disabled:bg-gray-300"
-        >
-          {uuidInQueryParam ? "Save Changes" : "Create"}
-        </button>
-        <button
-          className="bg-blue-600 text-white px-4 py-2 rounded"
+          className="bg-blue-600 text-white px-4 py-2 ml-auto rounded"
           onClick={() => setIsShareDialogVisible(!isShareDialogVisible)}
         >
           Share
@@ -222,22 +228,31 @@ const App = () => {
           type="text"
           placeholder="Activity name..."
           value={activityName}
-          onChange={e => setActivityName(e.target.value)}
           className="border border-gray-100 px-3 py-2 mb-2 w-full rounded-md placeholder:text-sm"
+          onChange={e => {
+            setActivityName(e.target.value);
+            modifyActivityBasicInfo("activityName", e.target.value);
+          }}
         />
         <input
           type="text"
           placeholder="Gathering location..."
           value={gatheringLocation}
-          onChange={e => setGatheringLocation(e.target.value)}
           className="border border-gray-100 px-3 py-2 mb-2 w-full rounded-md placeholder:text-sm"
+          onChange={e => {
+            setGatheringLocation(e.target.value);
+            modifyActivityBasicInfo("gatheringLocation", e.target.value);
+          }}
         />
         <input
           type="text"
           placeholder="Gathering time..."
           value={gatheringTime}
-          onChange={e => setGatheringTime(e.target.value)}
           className="border border-gray-100 px-3 py-2 w-full rounded-md placeholder:text-sm"
+          onChange={e => {
+            setGatheringTime(e.target.value);
+            modifyActivityBasicInfo("gatheringTime", e.target.value);
+          }}
         />
       </section>
 
