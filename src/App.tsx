@@ -192,6 +192,39 @@ const App = () => {
     setIsSaving(false);
   };
 
+  const renderShareDialog = () => {
+    if (!isShareDialogVisible) return null;
+    return <Share close={() => setIsShareDialogVisible(false)} />;
+  };
+
+  const renderCreateButton = () => {
+    if (uuidInQueryParam) return null;
+    return (
+      <button
+        disabled={isCreateDisabled}
+        onClick={createOnClick}
+        className="bg-green-500 text-white px-4 py-2 rounded disabled:bg-gray-300"
+      >
+        Create
+      </button>
+    );
+  };
+
+  const renderSavingIndicator = () => {
+    if (!uuidInQueryParam) return null;
+    if (!isSaving) return null;
+    return <span className="text-sm text-green-500">Saving...</span>;
+  };
+
+  const renderFavorite = () => {
+    if (!uuidInQueryParam) return;
+    return (
+      <button className="ml-auto bg-blue-100 text-gray-500 px-4 py-2 rounded">
+        ♥
+      </button>
+    );
+  };
+
   if (isLoading) return <h1 className="m-4 text-center">Loading...</h1>;
 
   const isCreateDisabled = (!activityName && !gatheringLocation && !gatheringTime && !people.length && !Object.keys(cars).length);
@@ -199,25 +232,18 @@ const App = () => {
   return (
     <main className="p-4">
       <section className="mb-4 flex justify-between items-center gap-2">
-        {!uuidInQueryParam &&
-          <button
-            disabled={isCreateDisabled}
-            onClick={createOnClick}
-            className="bg-green-500 text-white px-4 py-2 rounded disabled:bg-gray-300"
-          >
-            Create
-          </button>
-        }
-        {uuidInQueryParam && isSaving && <span className="text-sm text-green-500">Saving...</span>}
+        {renderCreateButton()}
+        {renderSavingIndicator()}
+        {renderFavorite()}
         <button
-          className="bg-blue-600 text-white px-4 py-2 ml-auto rounded"
+          className="bg-blue-600 text-white px-4 py-2 rounded"
           onClick={() => setIsShareDialogVisible(!isShareDialogVisible)}
         >
           Share
         </button>
       </section>
 
-      {isShareDialogVisible && <Share close={() => setIsShareDialogVisible(false)} />}
+      {renderShareDialog()}
 
       <section>
         <h1 className="flex items-center font-semibold text-lg mb-2 px-4 py-3 rounded bg-blue-100">
