@@ -250,7 +250,7 @@ export const Activity = () => {
     <main className="p-4">
       <section className="mb-4 flex justify-between items-center gap-2">
         <button
-          className="bg-gray-200 text-white px-4 py-2 rounded"
+          className="bg-blue-100 text-white px-4 py-2 rounded"
           onClick={() => goToOrigin()}
         >
           🏠

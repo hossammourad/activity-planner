@@ -16,7 +16,7 @@ const App = () => {
   const favoriteUuids = getFavorites();
   const [isLoading, setIsLoading] = useState(false);
   const [favorites, setFavorites] = useState<Favorite[]>([]);
-  const [shouldRenderActivityPage, setShouldRenderActivityPage] = useState(uuidInQueryParam);
+  const [shouldRenderActivityPage, setShouldRenderActivityPage] = useState(Boolean(uuidInQueryParam));
 
   useEffect(() => {
     const run = async () => {
